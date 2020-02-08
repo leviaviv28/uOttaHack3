@@ -66,13 +66,16 @@ void scanWiFi() {
 }
 
 void sendUpdate() {
-  char t_route[21];
-  strcat(t_route,"update_tracking");
-  String t = String(tracking);
-  for (int i=1; i<6;i++){
-    t_route[15+i]=t.charAt(i);
+  char t_route[22];
+  String st = String("update_tracking/");
+  for (int i=0; i<16;i++){
+    t_route[i]=st.charAt(i);
   }
-  //t_route[20] = '\0';
+  String t = String(tracking);
+  for (int i=0; i<5;i++){
+    t_route[16+i]=t.charAt(i);
+  }
+  t_route[21] = '\0';
   const char* t_SSID = WiFi.SSID().c_str();
 	Serial.println(client.publish(t_route, t_SSID));
 	Serial.println(t_route);
