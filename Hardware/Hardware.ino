@@ -3,6 +3,12 @@
 
 #define MAX_RETRY 3
 
+// Setting variables for timer ISRs
+volatile int interruptCounter;
+int totalInterruptCounter;
+hw_timer_t * timer = NULL;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+
 const char* wifiPrefix = "InnovaChamps"
 const char* serverAddress = "http://192.168.137.109:5000/update_location";
 //const char* ssid = "ArduinoNet";
@@ -60,6 +66,14 @@ void sendUpdate(int retries) {
 
 void setup() {
 	Serial.begin(115200);
+
+	// Timer ISR Setup
+	// Set timer to trigger every 10 seconds: 80k/800k=10s
+	timer = timerBegin(1, 800000000, true);
+	timerAttachInterrupt(timer, &onTimer, true);
+	timerAlarmWrite(timer, 1000000, true);
+	timerAlarmEnable(timer);
+
 	WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
 	delay(100);
@@ -69,11 +83,24 @@ void setup() {
 	scanWiFi();
  }
 
-void loop() {
+ void IRAM_ATTR onTime() {
+	portENTER_CRITICAL_ISR(&timerMux);
+	interrupts++;
 	if(WiFi.status() == WL_CONNECTED) {   //Check WiFi connection status
 		sendUpdate(MAX_RETRY);
-		delay(5000)
 	} else {
 		scanWiFi();
+	}
+	portEXIT_CRITICAL_ISR(&timerMux);
+}
+
+void loop() {
+	if (interrupts > 0) {
+		portENTER_CRITICAL(&timerMux);
+		interrupts--;
+		portEXIT_CRITICAL(&timerMux);
+		totalInterrupts++;
+		Serial.print("totalInterrupts");
+		Serial.println(totalInterrupts);
 	}
 }
