@@ -15,6 +15,28 @@
 #define DHTPIN 2
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
+//last time led flashed
+#define LED 4
+long prev = 0;
+
+//warning LED
+#define WARN_LED 7
+int warn = 0;
+//bit-0 = upside down, bit-1 = high temp, bit-2 = low temp, bit-3 = high humidity
+
+//LED states
+#define NOT_CONNECTED 25
+#define CONNECTED 2000
+
+void flash_led(int delay_ms) {
+   if (millis() - prev > delay_ms) {
+     digitalWrite(LED, HIGH);
+     delay(10);
+     digitalWrite(LED, LOW);      
+     prev = millis();
+   }
+}
+
 void setup() {
   Serial.begin(9600);
 
@@ -34,6 +56,9 @@ void setup() {
 }
 
 void loop() {
+  //reset warnings
+  warn = 0;
+  
   //Reading Accelerometer
   Wire.beginTransmission(GY_ADDR);
   
@@ -85,21 +110,44 @@ void loop() {
 //    Serial.print(", gz: ");
 //    Serial.println(String(gz));
 
+    //checking whether it's upside down
+    if (yaw < 0) {
+      warn += 1; //set bit-0 = 1
+    }
+
     //Reading DHT
     sensors_event_t event;
     dht.temperature().getEvent(&event);
     if (!isnan(event.temperature)) {
+      double temp = event.temperature;
       Serial.print(", temp: ");
-      Serial.print(event.temperature);
+      Serial.print(temp);
+      if (temp > 50) {
+        warn += 2;
+      } else if (temp < -15) {
+        warn -= 4;
+      }
     }
 
     dht.humidity().getEvent(&event);
     if (!isnan(event.relative_humidity)) {
       Serial.print(", humditiy: ");
-      Serial.println(event.relative_humidity);
+      double humidity = event.relative_humidity;
+      Serial.println(humidity);
+      if (humidity > 60 || humidity < 15) {
+        warn += 8; //set bit-3 = 1
+      }
     } else {
       Serial.println("");
     }
 
+    flash_led(CONNECTED);
+
+    Serial.println(warn);
+    if (warn & 0001 || warn & 0100 || warn & 0010 || warn & 1000) { //mask to check each bit
+      digitalWrite(WARN_LED, HIGH);
+    } else {
+      digitalWrite(WARN_LED, LOW);
+    }
   }
 }
