@@ -1,5 +1,6 @@
 #include "WiFi.h"
 #include <HTTPClient.h>
+#include <PubSubClient.h>
 
 #define MAX_RETRY 3
 
@@ -9,10 +10,16 @@ int totalInterruptCounter;
 hw_timer_t * timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 long tracking = 123456789;
+// WiFi Configuration Variables
 const char* wifiPrefix = "InnovaChamps";
 const char* serverAddress = "http://34.66.100.203:80/update_location";
 const char* ssid = "ArduinoNet";
 const char* password =  "nohackplz";
+// MQTT Configuration Variables
+const char* mqttServer = "mr2hd0llj3vwjx.messaging.solace.cloud";
+const int mqttPort = 8883;
+const char* mqttUser = "solace-cloud-client";
+const char* mqttPassword = "vvngpe3cn2ss72a7425hgf1l7f";
 
 
 void scanWiFi() {
@@ -53,72 +60,29 @@ void scanWiFi() {
 	}
 }
 
+
 void sendUpdate(int retries) {
-	HTTPClient http;
-
-	http.begin(serverAddress);  //Specify destination for HTTP request
-	http.addHeader("Content-Type", "text/plain");             //Specify content-type header
-
-	int httpResponseCode = http.POST("tracking=" + String(tracking) +"&node=" + WiFi.SSID());   //Send the actual POST request
-
-	if(httpResponseCode>0){
-		String response = http.getString(); //Get the response to the request
-		Serial.println(httpResponseCode);   //Print return code
-		Serial.println(response);           //Print request answer
-	} else {
-		Serial.print("Error on sending POST: ");
-		Serial.println(httpResponseCode);
-		Serial.print("Retrying ");
-      Serial.print(retries);
-    Serial.println(" times");
-
-		if(retries > 0)
-			sendUpdate(retries - 1);
-	}
-
-	http.end();  //Free resources
+	client.publish("update_tracking/" + String(tracking), String(WiFi.SSID()));
+	Serial.println("Sent: " + String(WiFi.SSID()));
 }
 
 void setup() {
 	Serial.begin(115200);
-/*
-	// Timer ISR Setup
-	// Set timer to trigger every 10 seconds: 80k/800k=10s
-	timer = timerBegin(1, 800000000, true);
-	timerAttachInterrupt(timer, onTimer, true);
-	timerAlarmWrite(timer, 1000000, true);
-	timerAlarmEnable(timer);*/
 	WiFi.mode(WIFI_STA);
 	WiFi.disconnect();
 	delay(100);
+
+	client.setServer(mqttServer, mqttPort);
+  	client.setCallback(callback);
+
 	Serial.println("Setup done");
 	delay(4000);   //Delay needed before calling the WiFi.begin
 	// Connect to nearest InnovaPost WiFi 
 	scanWiFi();
  }
 
-/*void IRAM_ATTR onTime() {
-	portENTER_CRITICAL_ISR(&timerMux);
-	interrupts++;
-	if(WiFi.status() == WL_CONNECTED) {   //Check WiFi connection status
-		sendUpdate(MAX_RETRY);
-	} else {
-		scanWiFi();
-	}
-	portEXIT_CRITICAL_ISR(&timerMux);
-}*/
 
-void loop() {
- 
-	/*if (interrupts > 0) {
-		portENTER_CRITICAL(&timerMux);
-		interrupts--;
-		portEXIT_CRITICAL(&timerMux);
-		totalInterrupts++;
-		Serial.print("totalInterrupts");
-		Serial.println(totalInterrupts);
-	}*/
-
+void loop() { 
   if(WiFi.status() == WL_CONNECTED) {   //Check WiFi connection status
     sendUpdate(MAX_RETRY);
   } else {
