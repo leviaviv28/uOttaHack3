@@ -1,27 +1,32 @@
-/*
- *  This sketch demonstrates how to scan WiFi networks.
- *  The API is almost the same as with the WiFi Shield library,
- *  the most obvious difference being the different file you need to include:
- */
 #include "WiFi.h"
+#include <HTTPClient.h>
 
-void setup()
-{
-    Serial.begin(115200);
+const char* ssid = "ArduinoNet";
+const char* password =  "nohackplz";
 
-    // Set WiFi to station mode and disconnect from an AP if it was previously connected
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
-    delay(100);
+ 
+void setup() {
+ 
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  Serial.println("Setup done");
+  
+  delay(4000);   //Delay needed before calling the WiFi.begin
+  
+  WiFi.begin(ssid, password); 
+ 
+ while (WiFi.status() != WL_CONNECTED) { //Check for the connection
+  delay(1000);
+    Serial.println("Connecting to WiFi..");
+ }
+ 
+ Serial.println("Connected to the WiFi network");
+ }
 
-    Serial.println("Setup done");
-}
-
-void loop()
-{
+void loop() {
     Serial.println("scan start");
-
-    // WiFi.scanNetworks will return the number of networks found
     int n = WiFi.scanNetworks();
     Serial.println("scan done");
     if (n == 0) {
@@ -43,6 +48,41 @@ void loop()
     }
     Serial.println("");
 
-    // Wait a bit before scanning again
     delay(5000);
+    
+  if(WiFi.status()== WL_CONNECTED){   //Check WiFi connection status
+ 
+   HTTPClient http;   
+ 
+   http.begin("http://192.168.137.109:5000/update_location");  //Specify destination for HTTP request
+   http.addHeader("Content-Type", "text/plain");             //Specify content-type header
+ 
+   int httpResponseCode = http.POST("POSTING from ESP32");   //Send the actual POST request
+ 
+   if(httpResponseCode>0){
+ 
+    String response = http.getString();                       //Get the response to the request
+ 
+    Serial.println(httpResponseCode);   //Print return code
+    Serial.println(response);           //Print request answer
+ 
+   }else{
+ 
+    Serial.print("Error on sending POST: ");
+    Serial.println(httpResponseCode);
+ 
+   }
+ 
+   http.end();  //Free resources
+ 
+ }else{
+ 
+    Serial.println("Error in WiFi connection");   
+ 
+ }
+
+   Serial.println("Connected to");
+ 
+  delay(10000);  //Send a request every 10 seconds
+ 
 }
