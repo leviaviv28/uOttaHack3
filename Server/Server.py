@@ -1,25 +1,32 @@
 import certifi
 import paho.mqtt.client as mqtt
 
+packages = {}
 
 def updateDatabase(msg):
-    return
+    tracking = msg.route.split('/')[1]
+    location = msg.payload
+    packages[tracking] = location
+
 
 def getDatabase(msg):
-    return None, None
+    if msg.payload in packages.keys():
+        return msg.payload, packages[msg.payload]
+    else:
+        return None
 
 # Callback on connection
 def on_connect(client, userdata, flags, rc):
     print(rc)
-    client.subscribe('update_tracking')
-    client.subscribe('fetch_tracking')
+    client.subscribe('fetch_tracking/listen')
+    client.subscribe('update_tracking/#')
 
 
 # Callback when message is received
 def on_message(client, userdata, msg):
     print(f'Message received on topic: {msg.topic}. Message: {msg.payload}')
     if msg.topic == 'update_tracking':
-        updateDatabase(msg.payload)
+        updateDatabase(msg)
     elif msg.topic  == 'fetch_tracking':
         tracking_num, package_state = getDatabase(msg.payload)
         client.publish(f'fetch_tracking/{tracking_num}', payload=package_state)
