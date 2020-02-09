@@ -1,5 +1,6 @@
 package com.example.uottahackapp;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
 import android.graphics.Camera;
@@ -18,15 +19,21 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 //FIRST GET THE HELPER FILE
 //THEN MAKE THE CONNECTION IN THIS FILE
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     MqttHelper mqttHelper;
-    TextView dataReceived;
+    TextView dataReceived = null;
+    Map<String,String> m;
+
+
 
     /**
      * Commented the next block of declarations for debugging purposes
@@ -42,9 +49,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-
-
-
     //
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +58,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
+        dataReceived = findViewById(R.id.textView);
+
+        m = new HashMap<>();
+
+        m.put("p","43.507,-80.4986");
+        m.put("pr", "43.4986,-80.504");
+        m.put("so", "43.4481,-80.51925");
+        m.put("sh", "43.479476,-80.5159");
+        m.put("i","43.4762,-80.5250");
+        m.put("a", "43.4696,-80.523");
+
+
+
         mapFragment.getMapAsync(this);
         dataReceived =  findViewById(R.id.textView);
         mqttHelper = new MqttHelper(getApplicationContext());
+
 
         mqttHelper.setCallback(new MqttCallbackExtended() {
             @Override
@@ -69,13 +87,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
 
+
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-               String[] arr = new String[2];
-               arr = message.toString().split(" ");
-               setMarker(mMap,Integer.parseInt(arr[0]),Integer.parseInt(arr[1]));
 
-               dataReceived.setText("The current coordinates of the package are: "+arr[0]+ " " + arr[1]);
+            String input = message.toString();
+            String parsedInput =  m.get(input.toLowerCase());
+            System.out.println("\n------------------------\nINSIDE MESSAGE ARRIVED\n----------------\n");
+
+            double coordOne = Double.parseDouble(parsedInput.split(",")[0]);
+            double coordTwo = Double.parseDouble(parsedInput.split(",")[1]);
+            setMarker(mMap,coordOne,coordTwo);
+            dataReceived.setText("The current coordinates are: "+ +coordOne + " " +coordTwo);
+
+
             }
 
             @Override
@@ -108,10 +133,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
     }
 
-    public void setMarker(GoogleMap map,int lat, int lng) {
+    public void setMarker(GoogleMap map,double lat, double lng) {
         mMap = map;
 
         LatLng marker = new LatLng(lat,lng);
+        mMap.clear();
         mMap.addMarker(new MarkerOptions().position(marker).title("Updated marker"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
     }
