@@ -15,11 +15,14 @@
 #define GY_ADDR 0x68
 #define PWR_MGMT_1 0x6B
 #define ACCEL_XOUT_H 0x3B
+bool upside = true;
 
 //DHT stuff
 #define DHTTYPE DHT11
 #define DHTPIN 2
 DHT_Unified dht(DHTPIN, DHTTYPE);
+double humidity = 0.0;
+double temp = 0.0;
 
 //last time led flashed
 #define LED 4
@@ -63,6 +66,7 @@ void scanWiFi() {
 	Serial.println("scan done");
 	if (n == 0) {
 		Serial.println("no networks found");
+    flash_led(NOT_CONNECTED);
 	} else {
 		Serial.print(n);
 		Serial.println(" networks found");
@@ -111,6 +115,56 @@ void sendUpdate() {
   const char* t_SSID = WiFi.SSID().c_str();
 	Serial.println(client.publish(t_route, t_SSID));
 	Serial.println(t_route);
+  sendEnviron();
+}
+
+void sendEnviron() {
+  char t_route[25];
+  String st = String("update_environment/");
+  for (int i=0; i<19;i++){
+    t_route[i]=st.charAt(i);
+  }
+  String t = String(tracking);
+  for (int i=0; i<5;i++){
+    t_route[19+i]=t.charAt(i);
+  }
+
+  t_route[24] = '\0';
+  
+  char environ_info[14];
+ 
+  //add 'yaw' (if upside-right) to string
+  if (upside) {
+    environ_info[0] = '1';
+  } else {
+    environ_info[0] = '0';
+  }
+  environ_info[1] = ',';
+
+  //add temperature to string
+  String temp_str = String(temp);
+  if (temp_str.length() < 5) {
+    temp_str = "0" + temp_str;
+  }
+  for (int i=0; i<5;i++){
+    environ_info[2+i]=temp_str.charAt(i);
+  }
+
+  environ_info[7] = ',';
+
+  //add humidity to string
+  String humidity_str = String(humidity);
+  if (humidity_str.length() < 5) {
+    humidity_str = "0" + humidity_str;
+  }
+  for (int i=0; i<5;i++){
+    environ_info[8+i]=humidity_str.charAt(i);
+  }
+  
+  environ_info[13] = '\0';
+  
+  Serial.println(client.publish(t_route, environ_info));
+  Serial.println(t_route);
 }
 
 void flash_led(int delay_ms) {
@@ -173,7 +227,7 @@ void loop() {
   //request the values
   int w = Wire.requestFrom(GY_ADDR, 14);
 
-  int ax, ay, az, temp, gx, gy, gz;
+  int ax, ay, az;//, temp, gx, gy, gz;
   if (Wire.available()) {
     //accelerometer values
     ax = Wire.read() << 8 | Wire.read();
@@ -189,12 +243,10 @@ void loop() {
 //    gz = Wire.read() << 8 | Wire.read();
 
     double roll, pitch, yaw;
-    double x = ax;
-    double y = ay;
-    double z = az;
-    Serial.print(x);
-    Serial.print(y);
-    Serial.println(z);
+    double x = (int16_t)ax;
+    double y = (int16_t)ay;
+    double z = (int16_t)az;
+    //need to cast to int16_t because ESP sends it weird
 
     roll = atan(y/sqrt((x * x)+(z + z))) * (180.0/3.14);
     pitch = atan(x/sqrt((y * y) + (z * z))) * (180.0/3.14);
@@ -218,6 +270,9 @@ void loop() {
     //checking whether it's upside down
     if (yaw < 0) {
       warn += 1; //set bit-0 = 1
+      upside = false;
+    } else {
+      upside = true;
     }
 
     //Reading DHT
@@ -237,7 +292,7 @@ void loop() {
     dht.humidity().getEvent(&event);
     if (!isnan(event.relative_humidity)) {
       Serial.print(", humditiy: ");
-      double humidity = event.relative_humidity;
+      humidity = event.relative_humidity;
       Serial.println(humidity);
       if (humidity > 60 || humidity < 15) {
         warn += 8; //set bit-3 = 1
@@ -245,8 +300,6 @@ void loop() {
     } else {
       Serial.println("");
     }
-
-    flash_led(CONNECTED);
 
     Serial.println(warn);
     if (warn & 0001 || warn & 0100 || warn & 0010 || warn & 1000) { //mask to check each bit
@@ -260,9 +313,11 @@ void loop() {
     if(WiFi.status() == WL_CONNECTED) {   //Check WiFi connection status
       Serial.println(client.connect("esp32test", mqttUser, mqttPassword));
       sendUpdate();
+      flash_led(CONNECTED);
     } else {
         //ESP.restart();
       scanWiFi();
+      flash_led(NOT_CONNECTED);
     }
     //delay(5000);
     prev_scan = millis();
