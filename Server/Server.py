@@ -5,12 +5,13 @@ packages = {}
 environment = {}
 
 def updatePackage(msg):
-    tracking = msg.route.split('/')[1]
+    tracking = msg.topic.split('/')[1]
+    print(tracking)
     location = msg.payload
     packages[tracking] = location
 
 def updateEnvironment(msg):
-    tracking = msg.route.split('/')[1]
+    tracking = msg.topic.split('/')[1]
     location = msg.payload
     environment[tracking] = location
 
@@ -29,12 +30,14 @@ def on_connect(client, userdata, flags, rc):
 
 # Callback when message is received
 def on_message(client, userdata, msg):
+    print(packages)
+    print(environment)
     print(f'Message received on topic: {msg.topic}. Message: {msg.payload}')
-    if msg.topic == 'update_tracking':
+    if msg.topic.startswith('update_tracking'):
         updatePackage(msg)
-    elif msg.topic == 'update_environment':
+    elif msg.topic.startswith('update_environment'):
         updateEnvironment(msg)
-    elif msg.topic  == 'fetch_tracking':
+    elif msg.topic.startswith('fetch_tracking'):
         tracking_num, package_state = getPackage(msg.payload)
         client.publish(f'fetch_tracking/{tracking_num}', payload=package_state)
 
