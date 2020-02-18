@@ -21,85 +21,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/imageView5"
-                android:layout_width="77dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="256dp"
-                android:layout_marginTop="4dp"
-                android:adjustViewBounds="false"
-                android:foregroundGravity="center_vertical|center_horizontal"
-                android:outlineAmbientShadowColor="#00FFFFFF"
-                map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/textView"
-                map:srcCompat="@drawable/trackerlogo" />
-
-            <ImageView
-                android:id="@+id/imageView4"
-                android:layout_width="77dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="208dp"
-                android:layout_marginTop="4dp"
-                android:adjustViewBounds="false"
-                android:foregroundGravity="center_vertical|center_horizontal"
-                android:outlineAmbientShadowColor="#00FFFFFF"
-                map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/textView"
-                map:srcCompat="@drawable/trackerlogo" />
-
-            <ImageView
-                android:id="@+id/imageView1"
-                android:layout_width="77dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="64dp"
-                android:layout_marginTop="4dp"
-                android:adjustViewBounds="false"
-                android:background="#004E2D2D"
-                android:backgroundTint="#00741818"
-                android:backgroundTintMode="add"
-                android:foregroundGravity="center_vertical|center_horizontal"
-                android:outlineAmbientShadowColor="#00FFFFFF"
-                map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/textView"
-                map:srcCompat="@drawable/trackerlogo" />
-
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="77dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="112dp"
-                android:layout_marginTop="4dp"
-                android:adjustViewBounds="false"
-                android:foregroundGravity="center_vertical|center_horizontal"
-                android:outlineAmbientShadowColor="#00FFFFFF"
-                map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/textView"
-                map:srcCompat="@drawable/trackerlogo" />
-
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="77dp"
-                android:layout_height="88dp"
-                android:layout_marginStart="160dp"
-                android:layout_marginTop="4dp"
-                android:adjustViewBounds="false"
-                android:foregroundGravity="center_vertical|center_horizontal"
-                android:outlineAmbientShadowColor="#00FFFFFF"
-                map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/textView"
-                map:srcCompat="@drawable/trackerlogo" />
-
             <TextView
                 android:id="@+id/textView"
-                android:layout_width="352dp"
-                android:layout_height="71dp"
-                android:text="TextView"
+                android:layout_width="347dp"
+                android:layout_height="102dp"
+                android:text="Current Status:\n At Warehouse"
                 android:textAlignment="center"
                 android:textSize="30dp"
                 map:layout_constraintEnd_toEndOf="parent"
-                map:layout_constraintHorizontal_bias="0.492"
+                map:layout_constraintHorizontal_bias="0.491"
                 map:layout_constraintStart_toStartOf="parent"
-                map:layout_constraintTop_toBottomOf="@+id/map" />
+                map:layout_constraintTop_toBottomOf="@+id/map"
+                />
 
             <fragment
                 android:id="@+id/map"
@@ -111,6 +44,46 @@
                 map:layout_constraintStart_toStartOf="parent"
                 map:layout_constraintTop_toTopOf="parent"
                 tools:context=".MapsActivity" />
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:tint="#AAAAAA"
+                map:layout_constraintEnd_toStartOf="@+id/arrived"
+                map:layout_constraintStart_toEndOf="@+id/sorting"
+                map:layout_constraintTop_toBottomOf="@+id/textView"
+                map:srcCompat="@drawable/intransit" />
+
+            <ImageView
+                android:id="@+id/atWareHouseIcon"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginStart="32dp"
+
+                map:layout_constraintStart_toStartOf="parent"
+                map:layout_constraintTop_toBottomOf="@+id/textView"
+                map:srcCompat="@drawable/warehouse" />
+
+            <ImageView
+                android:id="@+id/sorting"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:tint="#AAAAAA"
+                map:layout_constraintEnd_toStartOf="@+id/imageView2"
+                map:layout_constraintStart_toEndOf="@+id/atWareHouseIcon"
+                map:layout_constraintTop_toBottomOf="@+id/textView"
+                map:srcCompat="@drawable/sorting" />
+
+            <ImageView
+                android:id="@+id/arrived"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginEnd="32dp"
+                android:tint="#AAAAAA"
+                map:layout_constraintEnd_toEndOf="parent"
+                map:layout_constraintTop_toBottomOf="@+id/textView"
+                map:srcCompat="@drawable/arrived" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

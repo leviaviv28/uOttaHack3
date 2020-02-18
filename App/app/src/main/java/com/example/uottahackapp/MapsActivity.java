@@ -63,9 +63,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         m = new HashMap<>();
 
         m.put("p","43.507,-80.4986");
-        m.put("pr", "43.4986,-80.504");
         m.put("so", "43.4481,-80.51925");
-        m.put("sh", "43.479476,-80.5159");
         m.put("i","43.4762,-80.5250");
         m.put("a", "43.4696,-80.523");
 

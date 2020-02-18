@@ -30,13 +30,13 @@ public class MqttHelper {
 //    final String username = "solace-cloud-client";
 //    final String password = "vvngpe3cn2ss72a7425hgf1l7f";
 
-    final String serverUri = "tcp://mr2hd0llj3vwp7.messaging.solace.cloud:1883";
+    final String serverUri = "tcp://mr2j0vvhki1l0v.messaging.solace.cloud:20550";
 
     final String clientId = MqttClient.generateClientId();
-    final String topic = "sensor/+";
+    final String topic = "pushInfo";
 
     final String username = "solace-cloud-client";
-    final String password = "86g9ulg16tconofedqq61h0i1p";
+    final String password = "8r5k3uig10d5j0dseo9m2g5bvq";
 
 
     public MqttHelper(Context context) {
